@@ -8,25 +8,34 @@
 	if (typeof define === 'function' && define.amd)
 	{
 		// AMD. Register as an anonymous module.
-		define([], factory);
+		define([], (function(){ factory(root) }()));
 	}
 	else if (typeof module === 'object' && module.exports)
 	{
 		// Node. Does not work with strict CommonJS, but
 		// only CommonJS-like environments that support module.exports,
 		// like Node.
-		module.exports = factory();
+		module.exports = factory(root);
 	}
 	else
 	{
 		// Browser globals (root is window)
-		root.Papa = factory();
+		root.Papa = factory(root);
 	}
-}(this, function()
-{
+} (function () {
+	try {
+		return Function('return this')();
+	}
+	catch (err) {
+		// Content Security Policy can prevent evaluating
+		// strings as JavaScript in browsers, where we can
+		// assume we have the window object.
+		return window;
+	}
+}(),
+function (global) {
 	'use strict';
 
-	var global = Function('return this')();
 	var IS_WORKER = !global.document && !!global.postMessage,
 		IS_PAPA_WORKER = IS_WORKER && /(\?|&)papaworker(=|&|$)/.test(global.location.search),
 		LOADED_SYNC = false, AUTO_SCRIPT_PATH;
